@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo "Requires:"
+echo "-	python3"
+echo "-	python3-pip"
+echo "- python3 modules"
+echo "-		powerlaw"
+echo "-		matplotlib"
+echo "-		scipy"
+echo "-		numpy"
+
+sleep 1
+apt-get install python3 python3-pip
+pip3 install powerlaw 
+pip3 install matplotlib
+pip3 install scipy
+pip3 install numpy
+pip3 install mpmath
+
+sleep 1
+echo "Installing distribution-analyse"
+cp ./distribution-analyse /usr/local/bin
+echo "Installation complete!"
+
+sleep 1 
+echo "You can call distribution-analyse in the folder where your data files exist, and continue as per instructions"
+exit

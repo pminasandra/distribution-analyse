@@ -1,0 +1,97 @@
+
+//////////////////////////////////////////////////////////
+
+distribution-analyse 2.0
+
+//////////////////////////////////////////////////////////
+
+
+
+
+LICENSES:
+
+
+	This is a simple beautification of code already written by Alsott et al (2014) to make life
+	relatively easier for others. It performs the analysis seen at <soon BioArXiv link>
+	
+	I don't own any of this software.
+
+	The software if yours. Do as you please.
+
+
+
+
+
+AUTHORED BY: Pranav Minasandra
+
+
+
+
+REQUIRED:
+
+	-	Any Linux system that softwares still support
+	-	An internet connection
+
+
+
+
+INSTALLATION INSTRUCTIONS:
+
+1.	Open the directory install-distribution-analyse using Terminal. There are two ways of doing this. One is to use the built in
+	cd command, if you are familiar with it. If you are a novice user, do the following.
+
+	i.	Open the folder typically in your Graphical User Interface
+	ii.	Right Click on the background, and click on Open in terminal
+
+
+2.	After you have the folder open in terminal, run the command:
+
+				sudo -H ./install
+
+
+3.	The installation might take a while depending on your internet speed
+
+
+4.	You're good to go.
+
+
+
+USAGE INSTRUCTIONS:
+
+
+A. DATA
+
+	Your data must be entered in a text file. Each line on the text file must contain a positive integer. No other character is allowed. 
+	Ensure that there is no blank line anywhere, especially at the end of your file.
+
+
+B. ANALYSIS
+	
+-	Open the folder containing your data file using terminal, as described above.
+-	Simple type the command:
+			
+			distribution-analyse FILE 
+
+-	The plot generated will be saved as <your-file's-name>.png in the same folder as your data file.
+-	The Maximum Likelihood Estimated parameters, AICs, and LLRs will be displayed on screen. 
+
+
+C. SAVING RESULTS
+
+If you wish to save your results for further analysis, do the following
+
+-	Open the folder containing your data file using terminal, as described above.
+-	Simple type the command:
+			
+			distribution-analyse FILE -s ANALYSIS_SAVE_DESTINATION_FILE
+
+
+D.  MORE  FEATURES
+
+Type the command 
+
+			distribution-analyse -h
+
+to see the current list of capabilities
+
+

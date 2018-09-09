@@ -1,0 +1,134 @@
+#!/usr/bin/python3
+
+from scipy.special import zeta
+from math import pi, e, log
+import powerlaw
+from matplotlib import pyplot as plt
+from random import random
+import argparse
+
+parser = argparse.ArgumentParser(usage="distribution-analyse FILEWITHDATA [-l --legend] [-q --quiet] [-s --save SAVEANALYSISDESTINATION]", epilog="Code written by Pranav Minasandra\nLast modified on 24 May 2018")
+parser.add_argument("File", help="Name of the file you wish analysed", type=str)
+parser.add_argument("-l", "--legend", help="Adds legends in the plots generated", action="store_true", default=False)
+parser.add_argument("-s", "--save", help="Saves the results of the analysis", type=str, dest="DestFile")
+parser.add_argument("-q", "--quiet", help="Performs the analysis without displaying on the terminal", action="store_true", default=False)
+desc = parser.parse_args()
+
+def load_data(filename):
+	a=[]
+	f=open(filename, 'r')
+	for line in f:
+		if int(line.rstrip('\n')) != 0:
+			a.append(int(line.rstrip('\n')))
+	return a
+
+def aic(ll, npar):
+	return 2*(npar - ll)
+
+
+def ll_power_law(data, fit):
+	a=0
+	b=fit.power_law.alpha
+	for x in data:
+		a += log(x)
+	return -len(data)*log(zeta(b)) - b*a
+
+def output_main(filename):
+
+	#	Load and fit data
+	data=load_data(filename)
+	fit = powerlaw.Fit(data, discrete=True, xmin=1)
+
+	#	Plot and save ccdfs
+	if not desc.quiet:
+		print('\nCODE IS NOW RUNNING\n___________________________________________________\n\n')
+	fig2 = fit.plot_ccdf(color='black', linewidth=1.5, label="Emprical Data")
+#	fit.exponential.plot_ccdf(color='black', linestyle='dotted', label="Exponential", ax=fig2)	#	Uncomment to show the exponential distribution on the plot
+	fit.power_law.plot_ccdf(color='green', linestyle='dotted', label="Zeta", ax=fig2)
+	fit.lognormal.plot_ccdf(color='brown', linestyle='dotted', label="Lognormal", ax=fig2)
+	fit.truncated_power_law.plot_ccdf(color='red', linestyle='dotted', label="Polylog", ax=fig2)
+	plt.ylabel('Complementary Cumulative Distribution Function')
+	plt.xlabel('Group Size')
+	plt.title(str('Empirical and predicted CCDFs:\n'+filename))
+	if desc.legend:
+		plt.legend()
+	plt.savefig(str(filename+'.png'))
+	if not desc.quiet:
+		print("!!! CCDF Plot saved as ", str(filename+'.png')," !!!\n")
+	plt.clf()
+
+	R1, p1 = fit.distribution_compare('power_law', 'exponential', normalized_ratio=True)	
+	R2, p2 = fit.distribution_compare('lognormal', 'power_law', normalized_ratio=True)
+	R3, p3 = fit.distribution_compare('truncated_power_law', 'lognormal', normalized_ratio=True)
+	if not desc.quiet:
+	#	Print the fit parameters
+		print('\n___________________________________________________\n\n')
+		print("\n\nList of parameters given below:")
+		print("____ __ __________ _____ ______\n")
+		print(u'Exponential\t\t\u03BB =', fit.exponential.parameter1)
+		print('Zeta\t\t\tb =', fit.power_law.alpha)
+		print(u'Lognormal\t\t\u03BC =', fit.lognormal.parameter1, u' and \u03C3 =', fit.lognormal.parameter2)
+		print('Polylog\t\t\tb =', fit.truncated_power_law.parameter1, u'and \u03BB =', fit.truncated_power_law.parameter2)
+
+
+    	#	Display AIC values
+		print("\n\n\n\nList of AICs given below:")
+		print("____ __ ____ _____ ______\n")
+		print('Exponential\t\t', aic(fit.exponential.loglikelihood, 1))
+		print('Zeta  \t\t\t', aic(ll_power_law(data, fit), 1))
+		print('Lognormal\t\t', aic(fit.lognormal.loglikelihood, 2))
+		print('Polylog\t\t\t', aic(fit.truncated_power_law.loglikelihood, 2))
+		print("\n\n")
+
+
+	#	Display LLR values in a tabular format
+		print("\n\nList of log-likelihood-ratios given below:")
+		print("____ __ _____________________ _____ ______\n")
+		print("Comparing\t\t\t\tR-value\t\t\t\tp-value")
+		print("___________________\t\t\t_______\t\t\t\t_______\n")
+
+		print("Zeta | Exp\t\t\t\t",R1, "\t\t\t",p1)
+		print("Lognormal | Zeta\t\t\t",R2,"\t\t\t",p2)
+		print("Polylog | Lognormal\t\t\t",R3,"\t\t\t",p3)
+		print("\n\n\t\t\tANALYSIS DONE!")
+	
+	if desc.DestFile:
+
+		savehandler = open(desc.DestFile, "w")
+		
+		savehandler.write('\n___________________________________________________\n')
+		savehandler.write('Results obtained using distribution-analyse written \nby Pranav Minasandra, using code from Alsott et al\nData input from file {}'.format(filename) )
+		savehandler.write('\n___________________________________________________\n\n\n\n\n')
+		savehandler.write('\n___________________________________________________\n')
+		savehandler.write("\nCCDF plot saved as {}.png\n".format(filename))
+		savehandler.write('\n___________________________________________________\n')
+		savehandler.write("\n\nList of parameters given below:")
+		savehandler.write("\n____ __ __________ _____ ______\n")
+		savehandler.write(u'\nExponential\t\t\u03BB = {}\n'.format(fit.exponential.parameter1))
+		savehandler.write('Zeta\t\t\tb = {}\n'.format( fit.power_law.alpha))
+		savehandler.write(u'Lognormal\t\t\u03BC = {}and \u03C3 = {}\n'.format(fit.lognormal.parameter1, fit.lognormal.parameter2))
+		savehandler.write(u'Polylog\t\t\tb = {} and \u03BB = {}\n'.format( fit.truncated_power_law.parameter1,fit.truncated_power_law.parameter2))
+
+
+		savehandler.write("\n\n\n\nList of AICs given below:")
+		savehandler.write("\n____ __ ____ _____ ______\n")
+		savehandler.write('\nExponential\t\t{}'.format( aic(fit.exponential.loglikelihood, 1)))
+		savehandler.write('\nZeta  \t\t\t{}'.format( aic(ll_power_law(data, fit), 1)))
+		savehandler.write('\nLognormal\t\t{}'.format( aic(fit.lognormal.loglikelihood, 2)))
+		savehandler.write('\nPolylog\t\t\t{}\n\n'.format( aic(fit.truncated_power_law.loglikelihood, 2)))
+		
+		savehandler.write("\n\nList of log-likelihood-ratios given below:\n")
+		savehandler.write("____ __ _____________________ _____ ______\n\n")
+		savehandler.write("Comparing\t\t\t\tR-value\t\t\t\tp-value\n")
+		savehandler.write("___________________\t\t\t_______\t\t\t\t_______\n\n")
+		savehandler.write("Zeta | Exp\t\t\t\t{}\t\t{}".format(R1, p1))
+		savehandler.write("\nLognormal | Zeta\t\t\t{}\t\t{}".format(R2, p2))
+		savehandler.write("\nPolylog | Lognormal\t\t\t{}\t\t{}".format(R3, p3))
+		savehandler.write("\n\n\t\t\tANALYSIS DONE!")
+
+		savehandler.close()
+
+output_main(desc.File)
+
+
+#----------------------------------------------------------------------------------------------------------------# 
